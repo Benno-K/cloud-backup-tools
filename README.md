@@ -21,6 +21,7 @@ Usage: cbackup [options]
        -d         rsync dry-run - don't actually transfer data
        -h         this help
        -m         mount only
+       -t <dir>   temporary directory for rsync
        -u         umount only
        -U         don't umount - useful if you want to check
                   your files after rsyncing
