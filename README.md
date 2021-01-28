@@ -1,6 +1,6 @@
 # raspi-backup-tools
 ## Abstract
-The scripts I use to backup my raspi locally and to webdav cloud storage where I it is encrypted using goscriptfs.
+The scripts I use to backup my raspi locally and to webdav cloud storage where it is encrypted using goscriptfs.
 
 ## Syntax
 ```
