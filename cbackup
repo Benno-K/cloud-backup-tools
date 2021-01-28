@@ -144,7 +144,7 @@ if [ $domount = 1 ];then
 	if [ $verbose -gt 0 ]; then
             echo "Mounting ${backups}"
         fi 
-	if [ $verbose -gt 3 ]; then
+	if [ $verbose -gt 2 ]; then
             gocryptquietflag=""
 	fi
         /usr/bin/gocryptfs ${gocryptquietflag} -extpass "${extpass}" "${cloud}/backups" "${backups}"
@@ -168,9 +168,9 @@ if [ $dobackup = 1 ]; then
 	vflag="v"
     fi 
 #    /usr/bin/rsync --inplace -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
-    if [ $verbose -gt 2 ]; then set -x; fi 
+    if [ $verbose -gt 1 ]; then set -x; fi 
 /usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
-    if [ $verbose -gt 2 ]; then set +x; fi 
+    if [ $verbose -gt 1 ]; then set +x; fi 
     unset TMPDIR
 else
     if [ $verbose -gt 0 ]; then
