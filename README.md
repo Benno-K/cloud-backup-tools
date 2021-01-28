@@ -3,8 +3,8 @@
 The scripts I use to backup my raspi locally and to webdav cloud storage where I it is encrypted using goscriptfs.
 
 ## Syntax
-Usage: cbackup [options]
 ```
+Usage: cbackup [options]
        -B         don't rsync - useful only for checking mounts
                   and dismounts
        -d         rsync dry-run - don't actually transfer data
