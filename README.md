@@ -8,7 +8,7 @@ Do rsync to cloud via webdav and encrypt using gocryptfs
 ### Implications
 This has quite some implications of which you do not
 think in the first place:
-1. Make sure you specify the right directory to hold temporary files - as rsync operation creates temporary files. The variable tmpdir in the script needs to be edited.
+1. Make sure you specify the right directory to hold temporary files - as rsync operation creates temporary files. The variable tmpdir in the script which is quite specific for the author's environment can be overwritten by the TMPDIR environment variable or by specifying the -t option followed by your temp dir.
 1. Note that rsyncs remote temporary directory actually is local as you rsync to a locally mounted davfs2.
 1. Make sure to have a suitable sized caching directory for davfs2. The default is /var/cache/davfs2. If your /var is to small to hold the biggest file transferred plus some spare it will not work
 1. You can edit the system davfs2 config file, to specify another cache-directory.
