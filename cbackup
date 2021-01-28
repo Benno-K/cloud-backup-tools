@@ -1,11 +1,18 @@
 #!/bin/bash
 
+# WEBDAV URL of cloud-storage
 cloudurl="https://webdav.magentacloud.de/"
+# Script returning username and password for WEBDAV URL, works like ssh-askpass - not part of this repo
 extpass="/root/gcaskpass"
+# Mount points for cloud and gocryptfs (encrypted fs on top of webdav)
 export cloud="/root/magenta"
 export backups="/root/backups"
+# Source to rsync
 srcdir="/ssd/backup-raspi/"
+# Room for rsyncs tempfiles
 tmpdir="/ssd/backup-raspi/tmp"
+
+# Default values for options and command flags
 domount=1
 doumount=1
 dobackup=1
@@ -16,17 +23,29 @@ dryrunflag=""
 gocryptquietflag="-q"
 verbose=0
 
+# This is what -h gives you
 function usage () {
     ((fd=$1+1))
     cat<<EOI >&$fd
 Usage: $0 [options]
-       -B         don't backup
-       -d         do a dry-run
+       -B         don't rsync - useful only for checking mounts
+                  and dismounts
+       -d         rsync dry-run - don't actually transfer data
        -h         this help
        -m         mount only
        -u         umount only
-       -U         don't umount 
-       -v         increase verbosity by 1 (can be specified multiple times)
+       -U         don't umount - useful if you want to check
+                  your files after rsyncing
+       -v         increase verbosity by 1 (can be specified 
+                  multiple times).
+		  Levels:
+		  1 Provide messages of what is going on. 
+		  2 Display important commands as they are 
+		    executed (using set -x before and set +x 
+		    after command execution) - includes all lowerr
+		    levels
+		  3 Reveal the gocryptfs master-key - includes
+		    all lower levels
 EOI
     exit $1
 }
@@ -125,7 +144,7 @@ if [ $domount = 1 ];then
 	if [ $verbose -gt 0 ]; then
             echo "Mounting ${backups}"
         fi 
-	if [ $verbose -gt 2 ]; then
+	if [ $verbose -gt 3 ]; then
             gocryptquietflag=""
 	fi
         /usr/bin/gocryptfs ${gocryptquietflag} -extpass "${extpass}" "${cloud}/backups" "${backups}"
@@ -149,9 +168,9 @@ if [ $dobackup = 1 ]; then
 	vflag="v"
     fi 
 #    /usr/bin/rsync --inplace -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
-    if [ $verbose -gt 3 ]; then set -x; fi 
+    if [ $verbose -gt 2 ]; then set -x; fi 
 /usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
-    if [ $verbose -gt 3 ]; then set +x; fi 
+    if [ $verbose -gt 2 ]; then set +x; fi 
     unset TMPDIR
 else
     if [ $verbose -gt 0 ]; then
