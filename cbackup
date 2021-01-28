@@ -9,8 +9,8 @@ export cloud="/root/magenta"
 export backups="/root/backups"
 # Source to rsync
 srcdir="/ssd/backup-raspi/"
-# Room for rsyncs tempfiles
-tmpdir="/ssd/backup-raspi/tmp"
+# Room for rsync's tempfiles - honor environment var if set
+tmpdir=${TMPDIR:-"/ssd/backup-raspi/tmp"}
 
 # Default values for options and command flags
 domount=1
@@ -33,6 +33,7 @@ Usage: $0 [options]
        -d         rsync dry-run - don't actually transfer data
        -h         this help
        -m         mount only
+       -t <dir>   temporary directory for rsync
        -u         umount only
        -U         don't umount - useful if you want to check
                   your files after rsyncing
@@ -50,7 +51,7 @@ EOI
     exit $1
 }
   
-while getopts "BdhmuUv" options
+while getopts "Bdhmt:uUv" options
     do
     case "$options" in
 	B)
@@ -65,6 +66,10 @@ while getopts "BdhmuUv" options
 	   ;;
 	m)
 	   domountonly=1
+	   ;;
+	t)
+           tmpdir=${OPTARG}
+           shift $((OPTIND -1))
 	   ;;
 	u)
 	   doumountonly=1
@@ -160,6 +165,9 @@ if [ $domountonly = 1 ]; then
     exit 0
 fi
 
+echo ${tmpdir}
+echo ${TMPDIR}
+
 if [ $dobackup = 1 ]; then
     export TMPDIR="${tmpdir}"
     vflag=""
@@ -167,9 +175,8 @@ if [ $dobackup = 1 ]; then
 	echo "Running backup (rsync)"
 	vflag="v"
     fi 
-#    /usr/bin/rsync --inplace -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
     if [ $verbose -gt 1 ]; then set -x; fi 
-/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
+/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -T "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
     if [ $verbose -gt 1 ]; then set +x; fi 
     unset TMPDIR
 else
