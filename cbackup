@@ -2,7 +2,7 @@
 
 # WEBDAV URL of cloud-storage
 cloudurl="https://webdav.magentacloud.de/"
-# Script returning username and password for WEBDAV URL, works like ssh-askpass - not part of this repo
+# Script returning password for WEBDAV URL, works like ssh-askpass - not part of this repo
 extpass="/root/gcaskpass"
 # Mount points for cloud and gocryptfs (encrypted fs on top of webdav)
 export cloud="/root/magenta"
