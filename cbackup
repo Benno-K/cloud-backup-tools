@@ -88,7 +88,7 @@ function cleanup {
 	if [ $verbose -gt 0 ]; then
             echo "Umounting ${cloud}"
         fi 
-        umount.davfs "${cloud}"
+        /usr/sbin/umount.davfs "${cloud}"
     else
 	if [ $verbose -gt 0 ]; then
             echo "Not umounting ${cloud} - it was not mounted"
