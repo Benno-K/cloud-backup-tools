@@ -1,0 +1,212 @@
+#!/bin/bash
+backups="boot root"              # Bootable dumps with dd
+totar="/usr/local/bin /data"     # Directories with tar
+
+declare -A backupdev # Make it an associative array
+backupdev[boot]="/dev/mmcblk0p1"
+backupdev[root]="/dev/mmcblk0p2"
+bckdir=/data/backups
+smbloc=//fritz.nas/fritz.nas
+#tarmnt=/fbnas
+#tardst=${tarmnt}/FBstick/backup-raspi
+#tmpdst=${tarmnt}/FBstick/tmp
+tarmnt=
+tardst=${tarmnt}/ssd/backup-raspi
+tmpdst=${tarmnt}/ssd/backup-raspi/tmp
+ddkeep=2
+tarkeep=2
+verbose=1
+
+stamp=$(date +"%Y%m%d-%H%M%S")
+
+function cleanupdds {
+ for bck in $backups
+  do
+  bcks=$(ls -1 /data/backups/${bck}-*|tac)
+  let skipped=0
+  rmcmd=""
+  for bck in $bcks
+    do
+    let skipped=$skipped+1
+    if [ $skipped -gt $ddkeep ]; then
+        $rmcmd
+	rmcmd="rm -f $bck"
+    fi
+    done
+  $rmcmd
+  done
+}
+
+function tarpurge {
+    topurge=$(ls -1 ${tardst}/*-${1}.tar.bz2* | egrep '.bz2$|.bz2.aa$'|tac)
+    if [ "$2" = "" ]; then
+	tokeep=3
+    else
+        tokeep=$2
+    fi
+
+    idx=0
+    for f in $topurge
+    do
+        let idx=$idx+1
+        if  [ $idx -gt $tokeep ]; then
+	    fbn=$(basename "$f")
+	    bn=$(basename "$f" .tar.bz2.aa)
+	    dn=$(dirname "$f")
+	    if [ "$bn" = "$fbn" ]; then
+		bn=$(basename "$f" .tar.bz2)
+		if [ "$bn" = "$fbn" ]; then
+			echo >&2 "Cannot find basename for $f -does not end in .aa or .bz2"
+			exit 2
+		fi
+	    fi		
+	    rm -vf ${dn}/${bn}.* ${dn}/tarinfo/${bn}.*
+        fi
+    done
+}
+
+function cleanuptars {
+#  let skipped=0
+#  rmcmd=""
+  for tardir in $totar
+    do
+    read tarname <<<$(echo ${tardir:1} | sed -e 's+/+-+g')
+    tarpurge ${tarname} ${tarkeep}
+#    tarfullname=$tardst/*-${tarname}.tar.bz2
+#    jnlfullname=$tardst/tarinfo/*-${tarname}.txt.bz2
+#    for name in "$tarfullname" "$jnlfullname"
+#      do
+#      bcks=$(ls -1 ${name}|tac)
+#      let skipped=0
+#      rmcmd=""
+#      for bck in $bcks
+#        do
+#        let skipped=$skipped+1
+#        if [ $skipped -gt $tarkeep ]; then
+#            $rmcmd
+##    	rmcmd="rm -f $bck"
+##        fi
+#        done
+#      done
+   done
+}
+
+function createfifo {
+  fifoname=$(mktemp -u ~/backupfifo.XXXXXXXX)
+  mkfifo $fifoname
+  echo $fifoname
+
+}
+
+function splitfifo {
+  dd if=$1 bs=1M|split -b4000M - $2.&
+}
+
+if [ "$1" = "-clean" ]; then
+  cleanupdds
+  exit
+fi
+
+if [ "$1" = "" ]; then
+ cleanupdds
+ for bck in $backups
+  do
+  logger "Backing up $bck"
+  if [ $verbose -gt 0 ]; then echo  "Backing up $bck"; fi
+  dd if=${backupdev[$bck]} bs=2048000| gzip -c > $bckdir/${bck}-${stamp}.dd.gz
+  ddsts=$?
+  if [ $verbose -gt 0 ]; then echo "Backed up $bck, status:$ddsts"; fi
+  logger "Backed up $bck, status:$ddsts"
+  done
+fi
+
+if [ -n "${tarmnt}" ]; then
+  if [ ! -d ${tarmnt} ]; then
+    mkdir ${tarmnt}
+  fi
+fi
+
+if [ -n "${tarmnt}" ]; then
+if [ "$1" != "-umount" ]; then
+  crdfil=$HOME/mntcred.$$
+  /usr/local/bin/credprovide -p $crdfil
+  mount -o credentials=$crdfil,sec=ntlm,noserverino,vers=1.0 $smbloc $tarmnt
+  if [ $? != 0 ]; then
+    logger "Failed to mount $tarmnt - NOT BACKING UP SYSTEM!"
+    exit 6
+  fi
+fi
+fi
+
+if [ "$1" = "-fakebcks" ]; then
+  shift
+  for (( i=0 ; i<$1 ; i++ ))
+    do
+    stamp=$(printf "19090909-09%04d" $i)
+    for tardir in $totar
+      do
+      cd $tardir
+      read tarname <<<$(echo ${tardir:1} | sed -e 's+/+-+g')
+      tarfullname=$tardst/${stamp}-${tarname}.tar.bz2
+      jnlfullname=$tardst/tarinfo/${stamp}-${tarname}.txt
+      if [ $verbose -gt 0 ]; then echo "creating $tarfullname"; fi
+      echo Demo | bzip2 -9  -c > $tarfullname 
+      echo Demo | bzip2 -c > $jnlfullname.bz2
+      done
+    done
+  if [ -n "${tarmnt}" ]; then
+    umount $tarmnt
+  fi
+  exit 0
+fi
+
+if [ "$1" = "-umount" ]; then
+  if [ -n "${tarmnt}" ]; then
+    umount $tarmnt
+  fi
+  exit
+fi
+
+if [ "$1" = "-mount" ]; then
+  exit
+fi
+
+if [ "$1" = "-tarclean" ]; then
+  cleanuptars
+  if [ -n "${tarmnt}" ]; then
+    umount $tarmnt
+  fi
+  exit
+fi
+
+if [ ! -d ${tardst}/tarinfo ]; then
+  mkdir -p ${tardst}/tarinfo
+fi
+
+if [ "$1" = "" ]; then
+ for tardir in $totar
+  do
+  logger "Backing up $tardir (tar)"
+  cd $tardir
+  read tarname <<<$(echo ${tardir:1} | sed -e 's+/+-+g')
+  tarfullname=$tardst/${stamp}-${tarname}.tar.bz2
+  jnlfullname=$tardst/tarinfo/${stamp}-${tarname}.txt
+  errfullname=$tardst/tarinfo/${stamp}-${tarname}.err
+  export TMPDIR=$tmpdst
+  bckfifo=$(createfifo)
+  splitfifo $bckfifo $tarfullname
+  tar cvjf $bckfifo --exclude-tag-under=NOBACKUP . >$jnlfullname 2>$errfullname
+  tsts=$?
+  rm -f $bckfifo
+  bzip2 $jnlfullname
+  unset TMPDIR
+  if [ $verbose -gt 0 ]; then echo "Backed up $tardir (tar,sts=$tsts)"; fi
+  logger "Backed up $tardir (tar,sts=$tsts) to $tarfullname"
+  done
+ cleanuptars
+fi
+
+if [ -n "${tarmnt}" ]; then
+  umount $tarmnt
+fi
+exit

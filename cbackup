@@ -1,0 +1,169 @@
+#!/bin/bash
+
+cloudurl="https://webdav.magentacloud.de/"
+extpass="/root/gcaskpass"
+export cloud="/root/magenta"
+export backups="/root/backups"
+srcdir="/ssd/backup-raspi/"
+tmpdir="/ssd/backup-raspi/tmp"
+domount=1
+doumount=1
+dobackup=1
+domountonly=0
+doumountonly=0
+dodryrun=0
+dryrunflag=""
+gocryptquietflag="-q"
+verbose=0
+
+function usage () {
+    ((fd=$1+1))
+    cat<<EOI >&$fd
+Usage: $0 [options]
+       -B         don't backup
+       -d         do a dry-run
+       -h         this help
+       -m         mount only
+       -u         umount only
+       -U         don't umount 
+       -v         increase verbosity by 1 (can be specified multiple times)
+EOI
+    exit $1
+}
+  
+while getopts "BdhmuUv" options
+    do
+    case "$options" in
+	B)
+	   dobackup=0
+	   ;;
+	d)
+	   dodryrun=1
+	   dryrunflag="--dry-run"
+	   ;;
+        h)
+	   usage 0
+	   ;;
+	m)
+	   domountonly=1
+	   ;;
+	u)
+	   doumountonly=1
+	   ;;
+	U)
+	   doumount=0
+	   ;;
+	v)
+           ((verbose++))
+	   ;;
+        *)
+	   usage 1
+	   ;;
+    esac
+done
+
+function ismounted() {
+    # Quote the / characters
+    mp="$1"
+    qmp=$(echo "$mp" | sed 's,\/,\\\/,g')
+    df -m|awk "/ "${qmp}"$/{print \$NF}"|grep -q "${mp}"
+    sts=$?
+    echo $sts
+    return $sts
+}
+
+function cleanup {
+    # Dismount both systems
+    if [ $(ismounted ${backups}) = 0 ];then
+	if [ $verbose -gt 0 ]; then
+            echo "Umounting ${backups}"
+        fi 
+        /bin/fusermount -u "${backups}"
+    else
+	if [ $verbose -gt 0 ]; then
+            echo "Not umounting ${backups} - it was not mounted"
+        fi 
+    fi
+    if [ $(ismounted ${cloud}) = 0 ];then
+	if [ $verbose -gt 0 ]; then
+            echo "Umounting ${cloud}"
+        fi 
+        umount.davfs "${cloud}"
+    else
+	if [ $verbose -gt 0 ]; then
+            echo "Not umounting ${cloud} - it was not mounted"
+        fi 
+    fi
+    exit
+}
+
+# Handle interrupts - do cleanup then
+trap cleanup INT ABRT KILL # TERM HUP  QUIT 
+
+# Only umount if -U
+if [ $doumountonly = 1 ]; then
+    cleanup
+    exit 0
+fi
+
+# Only mount if requested
+if [ $domount = 1 ];then
+    # Mount cloud space - if needed
+    if [ $(ismounted ${cloud}) != 0 ];then
+	if [ $verbose -gt 0 ]; then
+            echo "Mounting ${cloud}"
+        fi 
+        /usr/sbin/mount.davfs -o _netdev,noauto,noexec,nosuid,nodev "${cloudurl}" "${cloud}"
+    else
+	if [ $verbose -gt 0 ]; then
+            echo "Not mounting ${cloud} - it is already mounted"
+        fi 
+    fi
+
+    # Mount gocrypt directory on cloud space - if needed
+    if [ $(ismounted ${backups}) != 0 ];then
+	if [ $verbose -gt 0 ]; then
+            echo "Mounting ${backups}"
+        fi 
+	if [ $verbose -gt 2 ]; then
+            gocryptquietflag=""
+	fi
+        /usr/bin/gocryptfs ${gocryptquietflag} -extpass "${extpass}" "${cloud}/backups" "${backups}"
+    else
+	if [ $verbose -gt 0 ]; then
+            echo "Not mounting ${backups} - it is already mounted"
+        fi 
+    fi
+fi
+
+# Exit after mounts - if -m
+if [ $domountonly = 1 ]; then
+    exit 0
+fi
+
+if [ $dobackup = 1 ]; then
+    export TMPDIR="${tmpdir}"
+    vflag=""
+    if [ $verbose -gt 0 ]; then
+	echo "Running backup (rsync)"
+	vflag="v"
+    fi 
+#    /usr/bin/rsync --inplace -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
+    if [ $verbose -gt 3 ]; then set -x; fi 
+/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
+    if [ $verbose -gt 3 ]; then set +x; fi 
+    unset TMPDIR
+else
+    if [ $verbose -gt 0 ]; then
+	echo "Not running backup (rsync) on request (-B)"
+    fi 
+fi
+
+if [ $doumount = 1 ];then
+    cleanup
+else
+    if [ $verbose -gt 0 ]; then
+        echo "Not umounting ${backups} and ${cloud} on request"
+    fi 
+fi
+exit

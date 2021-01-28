@@ -1,2 +1,3 @@
 # raspi-backup-tools
-The script I use to backup my raspi locally and to cloud with encrypting it.
+The scripts I use to backup my raspi locally and to webdav cloud storage where I it is encrypted using goscriptfs.
+
