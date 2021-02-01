@@ -1,11 +1,18 @@
 #!/bin/bash
 
+# WEBDAV URL of cloud-storage
 cloudurl="https://webdav.magentacloud.de/"
+# Script returning password for WEBDAV URL, works like ssh-askpass - not part of this repo
 extpass="/root/gcaskpass"
+# Mount points for cloud and gocryptfs (encrypted fs on top of webdav)
 export cloud="/root/magenta"
 export backups="/root/backups"
-srcdir="/ssd/backup-raspi/"
-tmpdir="/ssd/backup-raspi/tmp"
+# Source to rsync
+srcdir="/ssd/backup-raspi"
+# Room for rsync's tempfiles - honor environment var if set
+tmpdir=${TMPDIR:-"/ssd/backup-raspi/tmp"}
+
+# Default values for options and command flags
 domount=1
 doumount=1
 dobackup=1
@@ -15,23 +22,37 @@ dodryrun=0
 dryrunflag=""
 gocryptquietflag="-q"
 verbose=0
+vflag=""
 
+# This is what -h gives you
 function usage () {
     ((fd=$1+1))
     cat<<EOI >&$fd
 Usage: $0 [options]
-       -B         don't backup
-       -d         do a dry-run
+       -B         don't rsync - useful only for checking mounts
+                  and dismounts
+       -d         rsync dry-run - don't actually transfer data
        -h         this help
        -m         mount only
+       -t <dir>   temporary directory for rsync
        -u         umount only
-       -U         don't umount 
-       -v         increase verbosity by 1 (can be specified multiple times)
+       -U         don't umount - useful if you want to check
+                  your files after rsyncing
+       -v         increase verbosity by 1 (can be specified 
+                  multiple times).
+		  Levels:
+		  1 Provide messages of what is going on. 
+		  2 Display important commands as they are 
+		    executed (using set -x before and set +x 
+		    after command execution) - includes all lowerr
+		    levels
+		  3 Reveal the gocryptfs master-key - includes
+		    all lower levels
 EOI
     exit $1
 }
   
-while getopts "BdhmuUv" options
+while getopts "Bdhmt:uUv" options
     do
     case "$options" in
 	B)
@@ -47,6 +68,10 @@ while getopts "BdhmuUv" options
 	m)
 	   domountonly=1
 	   ;;
+	t)
+           tmpdir=${OPTARG}
+           shift $((OPTIND -1))
+	   ;;
 	u)
 	   doumountonly=1
 	   ;;
@@ -55,6 +80,7 @@ while getopts "BdhmuUv" options
 	   ;;
 	v)
            ((verbose++))
+	   vflag="${vflag}v"
 	   ;;
         *)
 	   usage 1
@@ -141,17 +167,17 @@ if [ $domountonly = 1 ]; then
     exit 0
 fi
 
+echo ${tmpdir}
+echo ${TMPDIR}
+
 if [ $dobackup = 1 ]; then
     export TMPDIR="${tmpdir}"
-    vflag=""
     if [ $verbose -gt 0 ]; then
 	echo "Running backup (rsync)"
-	vflag="v"
     fi 
-#    /usr/bin/rsync --inplace -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
-    if [ $verbose -gt 3 ]; then set -x; fi 
-/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -t "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
-    if [ $verbose -gt 3 ]; then set +x; fi 
+    if [ $verbose -gt 1 ]; then set -x; fi 
+/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -T "${tmpdir}" "${srcdir}" "${backups}${srcdir}"
+    if [ $verbose -gt 1 ]; then set +x; fi 
     unset TMPDIR
 else
     if [ $verbose -gt 0 ]; then
