@@ -176,7 +176,7 @@ if [ $dobackup = 1 ]; then
 	echo "Running backup (rsync)"
     fi 
     if [ $verbose -gt 1 ]; then set -x; fi 
-/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -T "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
+/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -T "${tmpdir}" "${srcdir}" "${backups}${srcdir}"
     if [ $verbose -gt 1 ]; then set +x; fi 
     unset TMPDIR
 else
