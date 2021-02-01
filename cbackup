@@ -8,7 +8,7 @@ extpass="/root/gcaskpass"
 export cloud="/root/magenta"
 export backups="/root/backups"
 # Source to rsync
-srcdir="/ssd/backup-raspi/"
+srcdir="/ssd/backup-raspi"
 # Room for rsync's tempfiles - honor environment var if set
 tmpdir=${TMPDIR:-"/ssd/backup-raspi/tmp"}
 
@@ -22,6 +22,7 @@ dodryrun=0
 dryrunflag=""
 gocryptquietflag="-q"
 verbose=0
+vflag=""
 
 # This is what -h gives you
 function usage () {
@@ -79,6 +80,7 @@ while getopts "Bdhmt:uUv" options
 	   ;;
 	v)
            ((verbose++))
+	   vflag="${vflag}v"
 	   ;;
         *)
 	   usage 1
@@ -170,10 +172,8 @@ echo ${TMPDIR}
 
 if [ $dobackup = 1 ]; then
     export TMPDIR="${tmpdir}"
-    vflag=""
     if [ $verbose -gt 0 ]; then
 	echo "Running backup (rsync)"
-	vflag="v"
     fi 
     if [ $verbose -gt 1 ]; then set -x; fi 
 /usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -T "${tmpdir}" "${srcdir}" "${backups}/${srcdir}"
