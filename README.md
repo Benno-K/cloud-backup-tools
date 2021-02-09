@@ -1,4 +1,6 @@
-# raspi-backup-tools
+# raspi-backup-tools - BEWARE IT IS UNDER DEVELOPMENT
+backup is working for some time stable now on my system, but it isn't documented here (yet).
+cbackup is not yet working as expected so far - problem is, that it almost always retransferring alll the data for some reason.
 ## Abstract
 The scripts I use to backup my raspi locally and to webdav cloud storage where it is encrypted using goscriptfs.
 
