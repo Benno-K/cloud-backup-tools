@@ -1,6 +1,6 @@
 # raspi-backup-tools
 ## Abstract
-The scripts I use to backup my raspi locally and to webdav cloud storage where it is encrypted using goscriptfs.
+The scripts I want to use to backup my raspi locally and to webdav cloud storage where it is encrypted using goscriptfs.
 
 ## cbackup
 Do rsync to cloud via webdav and encrypt using gocryptfs
