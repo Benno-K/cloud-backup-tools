@@ -5,6 +5,18 @@ The scripts I want to use to backup my raspi locally and to webdav cloud storage
 **WARNING:**
 I haven"t used or tested them for years now. Try at your own risk.
 
+### Update
+The cbackup has been enhanced
+and tested s bit, but due to
+the lousy davfs performamce
+and davfs caching issues I
+cannot test rsync. Since that
+is the core-feature, cbackup 
+is currently quite useless for
+me. Maybe it works with other
+clouds but with my 
+MagentaCloud it is tooooo slow.
+
 ## cbackup
 Do rsync to cloud via webdav and encrypt using gocryptfs
 
