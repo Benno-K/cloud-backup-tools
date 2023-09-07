@@ -8,7 +8,7 @@ I haven"t used or tested them for years now. Try at your own risk.
 ### Update
 The cbackup has been enhanced
 and tested a bit, but due to
-the lousy davfs performamce
+the lousy davfs performance
 and davfs caching issues I
 cannot test rsync. Since that
 is the core-feature, cbackup 
