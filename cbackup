@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # WEBDAV URL of cloud-storage
-cloudurl="https://webdav.magentacloud.de/"
+cloudurl="https://magentacloud.de/remote.php/webdav"
+clouduser="perlfan@t-online.de"
 # Script returning password for WEBDAV URL, works like ssh-askpass - not part of this repo
 extpass="/root/gcaskpass"
 # Mount points for cloud and gocryptfs (encrypted fs on top of webdav)
@@ -12,7 +13,7 @@ srcdir="/ssd/backup-raspi"
 # Room for rsync's tempfiles - honor environment var if set
 tmpdir=${TMPDIR:-"/ssd/backup-raspi/tmp"}
 
-# Default values for options and command flags
+# Default values for curopt and command flags
 domount=1
 doumount=1
 dobackup=1
@@ -28,7 +29,7 @@ vflag=""
 function usage () {
     ((fd=$1+1))
     cat<<EOI >&$fd
-Usage: $0 [options]
+Usage: $0 [curopt]
        -B         don't rsync - useful only for checking mounts
                   and dismounts
        -d         rsync dry-run - don't actually transfer data
@@ -52,9 +53,12 @@ EOI
     exit $1
 }
   
-while getopts "Bdhmt:uUv" options
-    do
-    case "$options" in
+while getopts "Bdhmt:uUv" curopt
+do
+	  if [ $verbose -gt 3 ]; then
+      echo "DBG: curopt=$curopt OPTIND=$OPTIND OPTARG=$OPTARG" >&2
+	  fi
+    case "$curopt" in
 	B)
 	   dobackup=0
 	   ;;
@@ -69,8 +73,7 @@ while getopts "Bdhmt:uUv" options
 	   domountonly=1
 	   ;;
 	t)
-           tmpdir=${OPTARG}
-           shift $((OPTIND -1))
+     tmpdir=${OPTARG}
 	   ;;
 	u)
 	   doumountonly=1
@@ -79,47 +82,48 @@ while getopts "Bdhmt:uUv" options
 	   doumount=0
 	   ;;
 	v)
-           ((verbose++))
+     ((verbose++))
 	   vflag="${vflag}v"
 	   ;;
-        *)
+  *)
 	   usage 1
 	   ;;
     esac
 done
 
+# Function to determine mount
+# status of a filesystem
 function ismounted() {
-    # Quote the / characters
-    mp="$1"
-    qmp=$(echo "$mp" | sed 's,\/,\\\/,g')
-    df -m|awk "/ "${qmp}"$/{print \$NF}"|grep -q "${mp}"
-    sts=$?
-    echo $sts
-    return $sts
+	grep -q " $1 " /proc/mounts
+	return $?
 }
 
 function cleanup {
     # Dismount both systems
-    if [ $(ismounted ${backups}) = 0 ];then
-	if [ $verbose -gt 0 ]; then
-            echo "Umounting ${backups}"
-        fi 
-        /bin/fusermount -u "${backups}"
+		ismounted ${backups}
+		if [ $? = 0 ];then
+      if [ $verbose -gt 0 ]; then
+        echo "Umounting ${backups}"
+      fi 
+      /bin/fusermount -u "${backups}"
     else
-	if [ $verbose -gt 0 ]; then
-            echo "Not umounting ${backups} - it was not mounted"
+        if [ $verbose -gt 0 ]; then
+          echo "Not umounting ${backups} - it was not mounted"
         fi 
     fi
-    if [ $(ismounted ${cloud}) = 0 ];then
-	if [ $verbose -gt 0 ]; then
+		ismounted ${cloud}
+		if [ $? = 0 ];then
+        if [ $verbose -gt 0 ]; then
             echo "Umounting ${cloud}"
         fi 
-        /usr/sbin/umount.davfs "${cloud}"
+        umount "${cloud}"
     else
-	if [ $verbose -gt 0 ]; then
+        if [ $verbose -gt 0 ]; then
             echo "Not umounting ${cloud} - it was not mounted"
         fi 
     fi
+		# This is end of cleanuo
+		# function so we exit here
     exit
 }
 
@@ -128,27 +132,27 @@ trap cleanup INT ABRT KILL # TERM HUP  QUIT
 
 # Only umount if -U
 if [ $doumountonly = 1 ]; then
-    cleanup
-    exit 0
+    cleanup # cleanup exits!
 fi
 
 # Only mount if requested
 if [ $domount = 1 ];then
     # Mount cloud space - if needed
-    if [ $(ismounted ${cloud}) != 0 ];then
-	if [ $verbose -gt 0 ]; then
+		ismounted ${cloud}
+		if [ $? != 0 ];then
+        if [ $verbose -gt 0 ]; then
             echo "Mounting ${cloud}"
         fi 
-        /usr/sbin/mount.davfs -o _netdev,noauto,noexec,nosuid,nodev "${cloudurl}" "${cloud}"
+        /root/mcextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,username=${clouduser} "${cloudurl}" "${cloud}"
     else
-	if [ $verbose -gt 0 ]; then
+        if [ $verbose -gt 0 ]; then
             echo "Not mounting ${cloud} - it is already mounted"
         fi 
-    fi
-
+			fi
     # Mount gocrypt directory on cloud space - if needed
-    if [ $(ismounted ${backups}) != 0 ];then
-	if [ $verbose -gt 0 ]; then
+		ismounted {backups}
+		if [ $? != 0 ];then
+        if [ $verbose -gt 0 ]; then
             echo "Mounting ${backups}"
         fi 
 	if [ $verbose -gt 2 ]; then
@@ -186,7 +190,7 @@ else
 fi
 
 if [ $doumount = 1 ];then
-    cleanup
+    cleanup # cleanup exits!
 else
     if [ $verbose -gt 0 ]; then
         echo "Not umounting ${backups} and ${cloud} on request"
