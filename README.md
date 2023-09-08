@@ -13,8 +13,9 @@ the lousy performance I
 cannot test rsync. Since that
 is the core-feature, cbackup 
 is currently quite useless for
-me. Maybe it works with other
-clouds but with my 10 Mbit/s
+me. Maybe it works in other
+environments but with my
+10 Mbit/s
 uplink to the MagentaCloud it is tooooo slow.
 
 ## backup
