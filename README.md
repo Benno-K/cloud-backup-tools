@@ -9,8 +9,7 @@ nightly for about a decade now, and I restored files from it. Restoring single f
 ### Update
 The cbackup has been enhanced
 and tested a bit, but due to
-the lousy davfs performance
-and davfs caching issues I
+the lousy performance I
 cannot test rsync. Since that
 is the core-feature, cbackup 
 is currently quite useless for
