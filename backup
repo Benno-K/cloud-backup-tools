@@ -13,8 +13,8 @@ smbloc=//fritz.nas/fritz.nas
 tarmnt=
 tardst=${tarmnt}/ssd/backup-raspi
 tmpdst=${tarmnt}/ssd/backup-raspi/tmp
-ddkeep=3
-tarkeep=4
+ddkeep=2
+tarkeep=2
 verbose=1
 
 stamp=$(date +"%Y%m%d-%H%M%S")
