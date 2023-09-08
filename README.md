@@ -18,6 +18,24 @@ me. Maybe it works with other
 clouds but with my 
 MagentaCloud it is tooooo slow.
 
+## backup
+Uses dd to create binary 
+compressed image from the filesystems
+- /
+- /boot
+
+As / on a raspi changes quite
+s lot, it should be almost
+filled with zeroes (by
+creating a file filled with 
+zeroes from time to time to 
+get good gzip compression. In
+my PublicScripts repo the script
+zero-out-root-filesystem does
+this job. I taught cron to
+run it weekly.
+
+
 ## cbackup
 Do rsync to cloud via webdav and encrypt using gocryptfs
 
