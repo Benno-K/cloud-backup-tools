@@ -51,3 +51,10 @@ Usage: cbackup [options]
 		  3 Reveal the gocryptfs master-key - includes
 		    all lower levels
 ```
+
+## vmf
+### View mounted filesytems
+Show all mounted file systems
+like the "mount" command does
+but do not block like mount
+sometimes does.
