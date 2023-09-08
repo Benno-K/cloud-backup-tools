@@ -4,7 +4,7 @@ The scripts I want to use to backup my raspi locally (backup) and to webdav clou
 
 **WARNING:**
 I haven"t used or tested cbackup for years now. Try at your own risk. For local backups the script "backup" is running 
-nightly for about a decadei now, and I restored files from it. Restoring single files from it requires that you have enough space to gunzip the dumps to be able to mount them.
+nightly for about a decade now, and I restored files from it. Restoring single files from it requires that you have enough space to gunzip the dumps to be able to mount them.
 
 ### Update
 The cbackup has been enhanced
