@@ -56,5 +56,5 @@ Usage: cbackup [options]
 ### View mounted filesytems
 Show all mounted file systems
 like the "mount" command does
-but do not block like mount
+but do not block, like mount
 sometimes does.
