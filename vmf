@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Purpose:
+# View mounted filesystems
+# kinda like "mount" does
+# but do block (like mount
+# does sometimes
+#
+##
+#
+##
+
+printf "%-14s %-10s %s\n" "Device" "Filesysten" "Mountpoint"
+# Skip cgroup and docker fs
+awk '!/[cd][go][rc][ol][ue][pr]/{printf "%-14s %-10s %s\n",$1,$3,$2}' /proc/mounts | less
+exit
