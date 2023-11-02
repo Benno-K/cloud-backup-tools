@@ -116,7 +116,7 @@ function cleanup {
         if [ $verbose -gt 0 ]; then
             echo "Umounting ${cloud}"
         fi 
-        umount "${cloud}"
+        umount "${cloud}"&&echo umounted $cloud
     else
         if [ $verbose -gt 0 ]; then
             echo "Not umounting ${cloud} - it was not mounted"
@@ -143,7 +143,7 @@ if [ $domount = 1 ];then
         if [ $verbose -gt 0 ]; then
             echo "Mounting ${cloud}"
         fi 
-        /root/mcextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,username=${clouduser} "${cloudurl}" "${cloud}"
+        /root/mcextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,conf=~/.davfs2-magenta.conf,username=${clouduser} "${cloudurl}" "${cloud}" > /dev/null&&echo mounted $cloud
     else
         if [ $verbose -gt 0 ]; then
             echo "Not mounting ${cloud} - it is already mounted"
@@ -180,7 +180,7 @@ if [ $dobackup = 1 ]; then
 	echo "Running backup (rsync)"
     fi 
     if [ $verbose -gt 1 ]; then set -x; fi 
-/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -T "${tmpdir}" "${srcdir}" "${backups}${srcdir}"
+/usr/bin/rsync --size-only ${dryrunflag} -a${vflag}z -T "${tmpdir}" "${srcdir}" "${backups}"
     if [ $verbose -gt 1 ]; then set +x; fi 
     unset TMPDIR
 else
