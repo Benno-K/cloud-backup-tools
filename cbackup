@@ -158,7 +158,7 @@ if [ $domount = 1 ];then
 	if [ $verbose -gt 2 ]; then
             gocryptquietflag=""
 	fi
-	/usr/bin/gocryptfs ${gocryptquietflag} -extpass "${extpass}" "${cloud}/backups" "${backups}"&&echo "mounted $backup (gocryptfs)"
+	/usr/bin/gocryptfs ${gocryptquietflag} -extpass "${extpass}" "${cloud}/backups" "${backups}"&&echo "mounted $backups (gocryptfs)"
     else
 	if [ $verbose -gt 0 ]; then
             echo "Not mounting ${backups} - it is already mounted"
