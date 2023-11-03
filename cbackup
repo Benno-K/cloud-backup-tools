@@ -143,7 +143,7 @@ if [ $domount = 1 ];then
         if [ $verbose -gt 0 ]; then
             echo "Mounting ${cloud}"
         fi 
-        /root/mcextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,conf=~/.davfs2-magenta.conf,username=${clouduser} "${cloudurl}" "${cloud}" > /dev/null&&echo mounted $cloud
+				/root/mcextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,conf=~/.davfs2-magenta.conf,username=${clouduser} "${cloudurl}" "${cloud}" > /dev/null&&echo "mounted $cloud (cloud)"
     else
         if [ $verbose -gt 0 ]; then
             echo "Not mounting ${cloud} - it is already mounted"
@@ -158,7 +158,7 @@ if [ $domount = 1 ];then
 	if [ $verbose -gt 2 ]; then
             gocryptquietflag=""
 	fi
-        /usr/bin/gocryptfs ${gocryptquietflag} -extpass "${extpass}" "${cloud}/backups" "${backups}"&&echo mounted $backups
+	/usr/bin/gocryptfs ${gocryptquietflag} -extpass "${extpass}" "${cloud}/backups" "${backups}"&&echo "mounted $backup (gocryptfs)"
     else
 	if [ $verbose -gt 0 ]; then
             echo "Not mounting ${backups} - it is already mounted"
