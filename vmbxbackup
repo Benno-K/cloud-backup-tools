@@ -25,8 +25,7 @@ do
 	boxname=$(basename $d)
 	dirname=$(dirname $d)
 	case $boxname in
-#		skipthis | andthat | thistoo)
-		kafn | rsgm	)
+		skipthis | andthat | thistoo)
 			echo skipping $boxname
 			;;
 		*)
