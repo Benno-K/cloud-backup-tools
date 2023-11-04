@@ -1,0 +1,40 @@
+#!/bin/bash
+
+if [ $UID != 0 ]; then
+ 	echo >&2 "You must be root - try sudo"
+	exit 1
+fi
+vmloc=/ssd/vmail/vmail
+bckmnt=/root/backups
+bckloc=$bckmnt/backup-raspi/mailboxes
+needtoumount=0
+
+mcheck=$(grep "$bckmnt fuse.gocryptfs" /proc/mounts)
+if [ "$mcheck" == "" ]; then
+	echo >&2 "Backup location $bckmnt not (crypto-)mounted"
+	echo "Mounting cloud backup drive"
+	cbackup -m
+	needtoumount=1
+fi
+
+ts=$(date +%Y%m%d-%H%M%S)
+
+for d in $(echo $vmloc/*)
+do
+	boxname=$(basename $d)
+	case $boxname in
+		rsgm | kafn | xy)
+			echo skipping $boxname
+			;;
+		*)
+			echo Saving $boxname
+			(cd $vmloc;tar czf /root/backups/backup-raspi/mailboxes/$boxname-$ts.tgz $boxname&&echo done)
+			;;
+	esac
+done
+
+if [ $needtoumount == 1 ]; then
+	echo "umounting cloud backup drive"
+	cbackup -u
+fi
+exit
