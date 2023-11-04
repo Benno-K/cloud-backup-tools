@@ -5,6 +5,7 @@ if [ $UID != 0 ]; then
 	exit 1
 fi
 vmloc=/ssd/vmail/vmail
+mloc=/data/mail
 bckmnt=/root/backups
 bckloc=$bckmnt/backup-raspi/mailboxes
 needtoumount=0
@@ -19,7 +20,7 @@ fi
 
 ts=$(date +%Y%m%d-%H%M%S)
 
-for d in $(echo $vmloc/*)
+for d in $(echo $vmloc/*) $(echo $mloc/*)
 do
 	boxname=$(basename $d)
 	case $boxname in
