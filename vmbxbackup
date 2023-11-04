@@ -23,7 +23,7 @@ for d in $(echo $vmloc/*)
 do
 	boxname=$(basename $d)
 	case $boxname in
-		rsgm | kafn | xy)
+		skipthis | andthat | thistoo)
 			echo skipping $boxname
 			;;
 		*)
