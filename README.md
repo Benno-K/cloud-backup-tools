@@ -78,7 +78,7 @@ like the "mount" command does
 but do not block, like mount
 sometimes does.
 
-## vmbxbackuo
+## vmbxbackup
 Backup directories of virtual
 mail users - needs root to mount
 the cloud storage
