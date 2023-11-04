@@ -30,9 +30,7 @@ do
 			;;
 		*)
 			echo Saving $boxname
-			set -x
 			(cd $dirname;tar czf /root/backups/backup-raspi/mailboxes/$boxname-$ts.tgz $boxname&&echo done)
-			set +x;;
 	esac
 done
 
