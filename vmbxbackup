@@ -23,6 +23,7 @@ ts=$(date +%Y%m%d-%H%M%S)
 for d in $(echo $vmloc/*) $(echo $mloc/*)
 do
 	boxname=$(basename $d)
+	dirname=$(dirname $d)
 	case $boxname in
 #		skipthis | andthat | thistoo)
 		kafn | rsgm	)
@@ -31,7 +32,7 @@ do
 		*)
 			echo Saving $boxname
 			set -x
-			(cd $vmloc;tar czf /root/backups/backup-raspi/mailboxes/$boxname-$ts.tgz $boxname&&echo done)
+			(cd $dirname;tar czf /root/backups/backup-raspi/mailboxes/$boxname-$ts.tgz $boxname&&echo done)
 			set +x;;
 	esac
 done
