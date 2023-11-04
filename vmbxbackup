@@ -24,13 +24,15 @@ for d in $(echo $vmloc/*) $(echo $mloc/*)
 do
 	boxname=$(basename $d)
 	case $boxname in
-		skipthis | andthat | thistoo)
+#		skipthis | andthat | thistoo)
+		kafn | rsgm	)
 			echo skipping $boxname
 			;;
 		*)
 			echo Saving $boxname
+			set -x
 			(cd $vmloc;tar czf /root/backups/backup-raspi/mailboxes/$boxname-$ts.tgz $boxname&&echo done)
-			;;
+			set +x;;
 	esac
 done
 
