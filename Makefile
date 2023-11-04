@@ -1,8 +1,15 @@
-TARGETS = backup cbackup vmf vmbxbackup
+TARGETS = backup cbackup vmf mbxbackup
 LBINDIR = /usr/local/bin
 
 install: $(TARGETS)
-	sudo install -m 755 -t $(LBINDIR) $(TARGETS)
+	@for n in $(TARGETS);\
+	do \
+	diff -q $$n $(LBINDIR)/$$n > /dev/null;\
+	if [ "$$?" != "0"	];then \
+	   echo sudo install -m 755 -t $(LBINDIR) $$n;\
+	   sudo install -m 755 -t $(LBINDIR) $$n;\
+	fi;\
+	done
 
 # Code below is from template!
 usage:
