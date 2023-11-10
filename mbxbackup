@@ -30,9 +30,12 @@ do
 			;;
 		*)
 			echo Saving $boxname
-			(cd $dirname;tar czf /root/backups/backup-raspi/mailboxes/$boxname-$ts.tgz $boxname&&echo done)
+			(cd $dirname;tar czf $bckloc/$boxname-$ts.tgz $boxname&&echo done)
 	esac
 done
+
+echo cleaning up ...
+find $bckloc -maxdepth 1 -type f -mtime +6 -name '*.tgz' -exec rm -v \{\} \;
 
 if [ $needtoumount == 1 ]; then
 	echo "umounting cloud backup drive"
