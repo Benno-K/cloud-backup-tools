@@ -18,7 +18,7 @@ fi
 
 ts=$(date +%Y%m%d-%H%M%S)
 
-pushd $bckloc
+pushd $kploc
 tosave=$(find . -mtime -1 -name '*.kdbx*')
 if [ "$tosave" != "" ]; then
 	tar cvzf $bckloc/keepass.$ts.tgz $tosave
