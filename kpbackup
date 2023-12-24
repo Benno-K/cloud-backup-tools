@@ -1,0 +1,35 @@
+#!/bin/bash
+
+if [ $UID != 0 ]; then
+ 	echo >&2 "You must be root - try sudo"
+	exit 1
+fi
+kploc=/ssd/KeePass
+bckmnt=/root/backups
+bckloc=$bckmnt/backup-raspi/keepass
+needtoumount=0
+
+mcheck=$(grep "$bckmnt fuse.gocryptfs" /proc/mounts)
+if [ "$mcheck" == "" ]; then
+	echo "Mounting cloud backup drive"
+	/usr/local/bin/cbackup -m
+	needtoumount=1
+fi
+
+ts=$(date +%Y%m%d-%H%M%S)
+
+pushd $bckloc
+tosave=$(find . -mtime -1 -name '*.kdbx*')
+if [ "$tosave" != "" ]; then
+	tar cvzf $bckloc/keepass.$ts.tgz $tosave
+fi
+popd
+
+echo cleaning up ...
+find $bckloc -maxdepth 1 -type f -mtime +6 -name 'keepass.*.tgz' -exec rm -v \{\} \;
+
+if [ $needtoumount == 1 ]; then
+	echo "umounting cloud backup drive"
+	/usr/local/bin/cbackup -u
+fi
+exit

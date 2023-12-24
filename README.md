@@ -62,6 +62,7 @@ Usage: cbackup [options]
        -v         increase verbosity by 1 (can be specified 
                   multiple times).
 		  Levels:
+
 		  1 Provide messages of what is going on. 
 		  2 Display important commands as they are 
 		    executed (using set -x before and set +x 
@@ -78,7 +79,11 @@ like the "mount" command does
 but do not block, like mount
 sometimes does.
 
-## vmbxbackup
+## kpbackup
+Backup KeePass to magenta
+cloud
+
+## mbxbackup
 Backup directories of virtual
 mail users - needs root to mount
 the cloud storage

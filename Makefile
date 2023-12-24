@@ -1,4 +1,4 @@
-TARGETS = backup cbackup vmf mbxbackup
+TARGETS = backup cbackup vmf mbxbackup kpbackup
 LBINDIR = /usr/local/bin
 
 install: $(TARGETS)
