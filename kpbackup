@@ -23,7 +23,7 @@ tosave=$(find . -mtime -1 -name '*.kdbx*')
 
 if [ "$tosave" != "" ]; then
 	echo "attempting to save $tosave"
-	tar cvzf $bckloc/keepass.$ts.tgz $tosave
+	tar czf $bckloc/keepass.$ts.tgz $tosave&&echo "save done: $tosave"
 else
 	echo "nothing to save"
 fi
