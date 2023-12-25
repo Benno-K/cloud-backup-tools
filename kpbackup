@@ -20,8 +20,12 @@ ts=$(date +%Y%m%d-%H%M%S)
 
 pushd $kploc
 tosave=$(find . -mtime -1 -name '*.kdbx*')
+
 if [ "$tosave" != "" ]; then
+	echo "attempting to save $tosave"
 	tar cvzf $bckloc/keepass.$ts.tgz $tosave
+else
+	echo "nothing to save"
 fi
 popd
 
