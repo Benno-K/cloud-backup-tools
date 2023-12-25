@@ -18,7 +18,8 @@ fi
 
 ts=$(date +%Y%m%d-%H%M%S)
 
-pushd $kploc
+prv=$PWD
+cd  $kploc
 tosave=$(find . -mtime -1 -name '*.kdbx*')
 
 if [ "$tosave" != "" ]; then
@@ -27,7 +28,7 @@ if [ "$tosave" != "" ]; then
 else
 	echo "nothing to save"
 fi
-popd
+cd $prv
 
 echo cleaning up ...
 find $bckloc -maxdepth 1 -type f -mtime +6 -name 'keepass.*.tgz' -exec rm -v \{\} \;
