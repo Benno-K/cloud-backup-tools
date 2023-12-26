@@ -20,16 +20,16 @@ ts=$(date +%Y%m%d-%H%M%S)
 
 prv=$PWD
 cd  $kploc
-tosave=$(find . -mtime -1 -name '*.kdbx*')
-
-if [ "$tosave" != "" ]; then
+# repace newline chars with
+# blanks in find's output
+tosave=$(find . -mtime -1 -name '*.kdbx*'|tr \\n ' ')
+if ! [ "$tosave" == "" ]; then
 	echo "attempting to save $tosave"
 	tar czf $bckloc/keepass.$ts.tgz $tosave&&echo "save done: $tosave"
 else
 	echo "nothing to save"
 fi
 cd $prv
-
 echo cleaning up ...
 find $bckloc -maxdepth 1 -type f -mtime +6 -name 'keepass.*.tgz' -exec rm -v \{\} \;
 
