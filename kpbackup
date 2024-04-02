@@ -12,7 +12,7 @@ needtoumount=0
 mcheck=$(grep "$bckmnt fuse.gocryptfs" /proc/mounts)
 if [ "$mcheck" == "" ]; then
 	echo "Mounting cloud backup drive"
-	/usr/local/bin/cbackup -m
+	/usr/local/bin/cbackup -m || (echo aborting because mount fsiled;exit 4)
 	needtoumount=1
 fi
 
