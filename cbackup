@@ -143,7 +143,7 @@ if [ $domount = 1 ];then
         if [ $verbose -gt 0 ]; then
             echo "Mounting ${cloud}"
         fi 
-				/root/mcextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,conf=~/.davfs2-magenta.conf,username=${clouduser} "${cloudurl}" "${cloud}" > /dev/null&&echo "mounted $cloud (cloud)"
+				/root/mcextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,conf=~/.davfs2-magenta.conf,username=${clouduser} "${cloudurl}" "${cloud}" > /dev/null&&echo "mounted $cloud (cloud)" || exit 4
     else
         if [ $verbose -gt 0 ]; then
             echo "Not mounting ${cloud} - it is already mounted"

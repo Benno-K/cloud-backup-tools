@@ -14,7 +14,7 @@ mcheck=$(grep "$bckmnt fuse.gocryptfs" /proc/mounts)
 if [ "$mcheck" == "" ]; then
 	echo >&2 "Backup location $bckmnt not (crypto-)mounted"
 	echo "Mounting cloud backup drive"
-	/usr/local/bin/cbackup -m
+	/usr/local/bin/cbackup -m || (echo mount failed;exit 44)
 	needtoumount=1
 fi
 
