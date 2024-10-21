@@ -1,19 +1,5 @@
 #!/bin/bash
 
-# WEBDAV URL of cloud-storage
-cloudurl="https://magentacloud.de/remote.php/webdav"
-clouduser="perlfan@t-online.de"
-# Script returning password for WEBDAV URL, works like ssh-askpass - not part of this repo
-extpass="/root/gcaskpass"
-# Mount points for cloud and gocryptfs (encrypted fs on top of webdav)
-export cloud="/root/magenta"
-export backups="/root/backups"
-# Source to rsync
-srcdir="/ssd/backup-raspi"
-# Room for rsync's tempfiles - honor environment var if set
-tmpdir=${TMPDIR:-"/ssd/backup-raspi/tmp"}
-
-# Default values for curopt and command flags
 domount=1
 doumount=1
 dobackup=1
@@ -24,6 +10,7 @@ dryrunflag=""
 gocryptquietflag="-q"
 verbose=0
 vflag=""
+cloud=v # t or v
 
 # This is what -h gives you
 function usage () {
@@ -32,6 +19,7 @@ function usage () {
 Usage: $0 [curopt]
        -B         don't rsync - useful only for checking mounts
                   and dismounts
+       -c c       cloud ( t or v )
        -d         rsync dry-run - don't actually transfer data
        -h         this help
        -m         mount only
@@ -53,7 +41,7 @@ EOI
     exit $1
 }
   
-while getopts "Bdhmt:uUv" curopt
+while getopts "Bc:dhmt:uUv" curopt
 do
 	  if [ $verbose -gt 3 ]; then
       echo "DBG: curopt=$curopt OPTIND=$OPTIND OPTARG=$OPTARG" >&2
@@ -61,6 +49,9 @@ do
     case "$curopt" in
 	B)
 	   dobackup=0
+	   ;;
+	c)
+     cloud=${OPTARG}
 	   ;;
 	d)
 	   dodryrun=1
@@ -91,6 +82,30 @@ do
     esac
 done
 
+if [ $cloud = v ]; then
+	cloudurl="https://webdav.vodafonemail.de"
+	clouduser="perlfan@vodafonemail.de"
+	cloudextpass="/root/vfextpass"
+	cryptextpass="/root/vfextpass"
+	export cloud="/root/vfcloud"
+else
+	cloudurl="https://magentacloud.de/remote.php/webdav"
+	clouduser="perlfan@t-online.de"
+	cloudextpass="/root/mcextpass"
+	cryptextpass="/root/gcextpass"
+	export cloud="/root/magenta"
+fi
+
+# WEBDAV URL of cloud-storage
+# Script returning password for WEBDAV URL, works like ssh-askpass - not part of this repo
+# Mount points for cloud and gocryptfs (encrypted fs on top of webdav)
+export backups="/root/backups"
+# Source to rsync
+srcdir="/ssd/backup-raspi"
+# Room for rsync's tempfiles - honor environment var if set
+tmpdir=${TMPDIR:-"/ssd/backup-raspi/tmp"}
+
+# Default values for curopt and command flags
 # Function to determine mount
 # status of a filesystem
 function ismounted() {
@@ -143,7 +158,7 @@ if [ $domount = 1 ];then
         if [ $verbose -gt 0 ]; then
             echo "Mounting ${cloud}"
         fi 
-				/root/mcextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,conf=~/.davfs2-magenta.conf,username=${clouduser} "${cloudurl}" "${cloud}" > /dev/null&&echo "mounted $cloud (cloud)" || exit 4
+				$cloudextpass|mount -t davfs -o _netdev,noauto,noexec,nosuid,nodev,conf=~/.davfs2-vfcloud.conf,username=${clouduser} "${cloudurl}" "${cloud}" > /dev/null&&echo "mounted $cloud (cloud)" || exit 4
     else
         if [ $verbose -gt 0 ]; then
             echo "Not mounting ${cloud} - it is already mounted"
@@ -158,7 +173,7 @@ if [ $domount = 1 ];then
 	if [ $verbose -gt 2 ]; then
             gocryptquietflag=""
 	fi
-	/usr/bin/gocryptfs ${gocryptquietflag} -extpass "${extpass}" "${cloud}/backups" "${backups}"&&echo "mounted $backups (gocryptfs)"
+	/usr/bin/gocryptfs ${gocryptquietflag} -extpass "${cryptextpass}" "${cloud}/backups" "${backups}"&&echo "mounted $backups (gocryptfs)"
     else
 	if [ $verbose -gt 0 ]; then
             echo "Not mounting ${backups} - it is already mounted"
