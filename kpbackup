@@ -22,7 +22,7 @@ prv=$PWD
 cd  $kploc
 # repace newline chars with
 # blanks in find's output
-tosave=${1:=$(find . -mtime -1 -name '*.kdbx*'|tr \\n ' ')|awk '{printf "\"%s\" ",$0}'}
+tosave=$(find . -mtime -1 -name '*.kdbx*'|tr \\n ' ')|awk '{printf "\"%s\" ",$0}'
 if ! [ "$tosave" == "" ]; then
 	echo "attempting to save $tosave"
 	tar czf $bckloc/keepass.$ts.tgz $tosave&&echo "save done: $tosave"
