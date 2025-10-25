@@ -35,6 +35,10 @@ do
 done
 
 echo cleaning up ...
+# Under unclear circumstances it happened that no or an
+# incorrect number of files were deleted - trying whether
+# syncing before finding is helpful or not (10/25, 2025)
+sync -f $bckmnt
 find $bckloc -maxdepth 1 -type f -mtime +6 -name '*.tgz' -exec rm -v \{\} \;
 
 if [ $needtoumount == 1 ]; then
