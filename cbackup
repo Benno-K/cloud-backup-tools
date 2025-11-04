@@ -134,11 +134,16 @@ function cleanup {
         umount "${cloud}"&&echo umounted $cloud
 				# Handle bug in davfs-umount, remove
 				# dangling lockfile
+				# ( when cloud is /root/vfcloud 
+				#   then lcknam is root-vfcloud )
 				lcknam=${cloud//\//-}
 				lcknam=${lcknam:1}
+				# so this is the lock file ..
 				lckfil=/var/run/mount.davfs/${lcknam}.pid
+				# .. which can be safely removed ..
 				if [ -r $lckfil ]; then
 					IFS= read -r lckpid <$lckfil
+					# .. if the pid in it is non-existent
 					if [ ! -z "$lckpid" ]; then
 						kill -0 $lckpid 2>/dev/null
 						[ $? != 0 ] && rm $lckfil
