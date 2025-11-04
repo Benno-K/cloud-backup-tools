@@ -121,7 +121,7 @@ function cleanup {
         echo "Umounting ${backups}"
       fi 
       /bin/fusermount -u "${backups}"&&echo unmounted $backups
-    else
+   else
         if [ $verbose -gt 0 ]; then
           echo "Not umounting ${backups} - it was not mounted"
         fi 
@@ -132,8 +132,22 @@ function cleanup {
             echo "Umounting ${cloud}"
         fi 
         umount "${cloud}"&&echo umounted $cloud
-    else
-        if [ $verbose -gt 0 ]; then
+				# Handle bug in davfs-umount, remove
+				# dangling lockfile
+				lcknam=${cloud//\//-}
+				lcknam=${lcknam:1}
+				lckfil=/var/run/mount.davfs/${lcknam}.pid
+				if [ -r $lckfil ]; then
+					IFS= read -r lckpid <$lckfil
+					if [ ! -z "$lckpid" ]; then
+						kill -0 $lckpid 2>/dev/null
+						[ $? != 0 ] && rm $lckfil
+					fi
+				else
+					echo >&2 "it looks like the davfs-umount bug has been fixed - remove work-around from $0"
+				fi
+      else
+       if [ $verbose -gt 0 ]; then
             echo "Not umounting ${cloud} - it was not mounted"
         fi 
     fi
