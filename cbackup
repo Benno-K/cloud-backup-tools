@@ -143,9 +143,11 @@ function cleanup {
 				# .. which can be safely removed ..
 				if [ -r $lckfil ]; then
 					IFS= read -r lckpid <$lckfil
-					# .. if the pid in it is non-existent
+					# .. if the pid is not empty and
+					#    if it is non-existent ..
 					if [ ! -z "$lckpid" ]; then
 						kill -0 $lckpid 2>/dev/null
+						# .. then remove the dangling file
 						[ $? != 0 ] && rm $lckfil
 					fi
 				else
