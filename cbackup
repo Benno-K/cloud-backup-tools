@@ -14,7 +14,7 @@ fixCache() {
     shopt -s nullglob
     for dir in $cachePath; do
 				# if index.new size is zero then cache
-				# can.be cleared!
+				# can be cleared!
         local indexNew="$dir/index.new"
         if [[ -f "$indexNew" && ! -s "$indexNew" ]]; then
             rm -rf "$dir"/*
