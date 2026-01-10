@@ -4,7 +4,7 @@ if [ $UID != 0 ]; then
  	echo >&2 "You must be root - try sudo"
 	exit 1
 fi
-vmloc=/ssd/vmail/vmail
+vmloc=/ssd/vmail
 mloc=/data/mail
 bckmnt=/root/backups
 bckloc=$bckmnt/backup-raspi/mailboxes
@@ -20,7 +20,9 @@ fi
 
 ts=$(date +%Y%m%d-%H%M%S)
 
-for d in $(echo $vmloc/*) $(echo $mloc/*)
+locs=$(echo $vmloc/* $mloc/*)
+# Allow saving a mailbox dir specified as $1
+for d in ${1:-$locs)}
 do
 	boxname=$(basename $d)
 	dirname=$(dirname $d)

@@ -1,5 +1,30 @@
 #!/bin/bash
 
+# Fix davfs2 bug that leaves stale cash data
+fixCache() {
+    # mntPnt: mount point passed as $1
+    local mntPnt="$1"
+    # Construct expected cache dir name: replace / with +, escape special chars
+    local cacheDir="${mntPnt//\//-}"
+		# Remove leading dash
+		[ ${cacheDir:0:1} = "-" ] && cacheDir=${cacheDir:1}
+    local cachePath="/ssd/var/cache/davfs2/*${cacheDir}*"
+
+    # Check if index.new is zero-sized and safely remove cache
+    shopt -s nullglob
+    for dir in $cachePath; do
+				# if index.new size is zero then cache
+				# can.be cleared!
+        local indexNew="$dir/index.new"
+        if [[ -f "$indexNew" && ! -s "$indexNew" ]]; then
+            rm -rf "$dir"/*
+            rmdir "$dir" 2>/dev/null || true
+				else
+        		[[ -f "$indexNew" ]] && echo >&2 "$0: Error fixing cache for $mntPnt (index.new size > 0)" && exit 2
+        fi
+    done
+}
+
 domount=1
 doumount=1
 dobackup=1
@@ -131,9 +156,19 @@ function cleanup {
         if [ $verbose -gt 0 ]; then
             echo "Umounting ${cloud}"
         fi 
-        umount "${cloud}"&&echo umounted $cloud
-				# Handle bug in davfs-umount, remove
-				# dangling lockfile
+        umount.davfs "${cloud}"&&echo umounted $cloud
+				maxTries=30
+				# Wait for kernel to complete umount ...
+				while mountpoint -q ${cloud}>/dev/null 
+					do
+					((tries++))
+					[ $tries -gt $maxTries]] && echo >&2 "$0: umount did not complete after $maxtries secs" && return 1
+					sleep 1
+					done
+				# .. before fixing cache (davfs2 bug) ..
+				fixCache "${cloud}"
+				# .. and finally handle another bug in 
+				# davfs-umount, remove the dangling lockfile
 				# ( when cloud is /root/vfcloud 
 				#   then lcknam is root-vfcloud )
 				lcknam=${cloud//\//-}
