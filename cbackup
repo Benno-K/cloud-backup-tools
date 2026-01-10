@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Fix davfs2 bug that leaves stale cash data
+# Fix davfs2 bug that leaves stale cache data
 fixCache() {
     # mntPnt: mount point passed as $1
     local mntPnt="$1"
